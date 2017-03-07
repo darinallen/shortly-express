@@ -22,15 +22,15 @@ describe('', function() {
 
   var server;
 
-  before(function() {
-    server = app.listen(4568, function() {
-      console.log('Shortly is listening on 4568');
-    });
-  });
-
-  after(function() {
-    server.close();
-  });
+  // before(function() {
+  //   server = app.listen(4568, function() {
+  //     console.log('Shortly is listening on 4568');
+  //   });
+  // });
+  //
+  // after(function() {
+  //   server.close();
+  // });
 
   beforeEach(function() {
     // log out currently signed in user
@@ -76,7 +76,7 @@ describe('', function() {
 
     var requestWithSession = request.defaults({jar: true});
 
-    xbeforeEach(function(done) {
+    beforeEach(function(done) {
       // create a user that we can then log-in with
       new User({
         'username': 'Phillip',
