@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -22,18 +23,31 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(session({
+  secret: 'shhh, it\'s a secret',
+  resave: false,
+  saveUninitialized: true
+}));
 
-app.get('/',
+app.get('/', util.checkUser,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/create',
+app.get('/create', util.checkUser,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links',
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
+app.get('/links', util.checkUser,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
@@ -65,6 +79,7 @@ function(req, res) {
           baseUrl: req.headers.origin
         })
         .then(function(newLink) {
+          console.log(`newLink from from post links`);
           res.status(200).send(newLink);
         });
       });
@@ -92,7 +107,37 @@ function(req, res) {
 
 
 app.post('/login', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  new User({ username: username }).fetch().then(function(user) {   // do it for users
+    if (!user) {
+      res.redirect('/login');
+    } else {
+      user.comparePassword(password, function(match) {
+        if(match) {
+          util.createSession(req, res, user);
+        } else {
+          res.redirect('/login');
+        }
+      });
+    }
+  });
+});
 
+app.post('/signup', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  new User({ username: username }).fetch().then(function(user) {   // do it for users
+    if (!user) {
+      var newUser = new User({username: username, password: password});
+      newUser.save().then(function(newUser) {
+        util.createSession(req, res, newUser);
+      });
+    } else {
+      console.log('User already exists');
+      res.redirect('/signup');
+    }
+  });
 });
 
 /************************************************************/

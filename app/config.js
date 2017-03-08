@@ -43,10 +43,11 @@ db.knex.schema.hasTable('users').then(function(exists) {
   if (!exists) {
     db.knex.schema.createTable('users', function (user) {
       user.increments('id').primary();
-      user.string('username', 255);
+      user.string('hashkey', 40);
       user.string('password', 40); //hashkey - Not the user's actual password
-      user.string('saltkey', 40); // To be removed
+      user.string('username', 255);
       user.timestamps();
+      // user.string('notdropped', 40); // test
     }).then(function (table) {
       console.log('Created Table', table);
     });
